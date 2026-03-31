@@ -19,8 +19,16 @@ import {
   Euro,
   Target,
   User,
-  Briefcase
+  Briefcase,
+  Bookmark,
+  DollarSign
 } from "lucide-react";
+
+const Logo = ({ className = "w-12 h-12" }: { className?: string }) => (
+  <div className={`${className} overflow-hidden relative rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center shadow-lg`}>
+    <Zap className="w-2/3 h-2/3 text-white" />
+  </div>
+);
 
 // Types for the application
 interface Tool {
@@ -89,7 +97,7 @@ const QUESTIONS = [
     id: 'speed',
     question: "How fast do you need money?",
     options: ["This week", "Within a month", "3–6 months, I'm patient"],
-    icon: <Zap className="w-6 h-6" />
+    icon: <Clock className="w-6 h-6" />
   }
 ];
 
@@ -106,135 +114,162 @@ interface HustleCardProps {
 function HustleCard({ hustle, index, isBestMatch, isSaved, onToggleSave, onShare }: HustleCardProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Beginner': return 'bg-green-100 text-green-700';
-      case 'Intermediate': return 'bg-amber-100 text-amber-700';
-      case 'Advanced': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'Beginner': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'Intermediate': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'Advanced': return 'bg-rose-100 text-rose-700 border-rose-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className={`relative bg-gray-50 rounded-3xl p-6 md:p-8 border-2 ${isBestMatch ? 'border-primary shadow-xl ring-4 ring-primary/5' : 'border-transparent shadow-sm'}`}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, duration: 0.5 }}
+      className={`relative bg-white rounded-[2.5rem] p-8 md:p-10 border-2 transition-all duration-300 ${
+        isBestMatch 
+          ? 'border-primary shadow-[0_20px_50px_rgba(91,33,182,0.15)] ring-8 ring-primary/5' 
+          : 'border-gray-100 shadow-xl shadow-gray-200/50 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10'
+      }`}
     >
       {isBestMatch && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-bold flex items-center shadow-lg">
-          <Trophy className="w-4 h-4 mr-2" />
-          Best Match
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-indigo-600 text-white px-6 py-2 rounded-full text-sm font-black flex items-center shadow-xl tracking-wider uppercase">
+          <Trophy className="w-4 h-4 mr-2 text-amber-300" />
+          Ultimate Match
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900">{hustle.name}</h3>
-          <p className="text-gray-500 font-medium">{hustle.tagline}</p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <h3 className="text-3xl font-black text-gray-900 tracking-tight">{hustle.name}</h3>
+            <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getDifficultyColor(hustle.difficulty)}`}>
+              {hustle.difficulty}
+            </span>
+          </div>
+          <p className="text-lg text-gray-500 font-medium leading-relaxed">{hustle.tagline}</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getDifficultyColor(hustle.difficulty)}`}>
-            {hustle.difficulty}
-          </span>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onShare(hustle.name, hustle.monthly_income)}
+            className="p-3 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-colors border border-gray-100"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => onToggleSave(hustle)}
+            className={`p-3 rounded-2xl transition-all border ${
+              isSaved 
+                ? 'bg-primary/10 border-primary text-primary' 
+                : 'text-gray-400 hover:text-primary hover:bg-primary/5 border-gray-100'
+            }`}
+          >
+            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-primary' : ''}`} />
+          </button>
         </div>
       </div>
 
-      <div className="space-y-4 mb-6">
-        <div className="space-y-1">
-          <div className="flex justify-between text-sm font-bold">
-            <span className="text-gray-600">Fit Score</span>
-            <span className="text-primary">{hustle.fit_score}%</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex justify-between items-end">
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest">Compatibility</span>
+              <span className="text-2xl font-black text-primary">{hustle.fit_score}%</span>
+            </div>
+            <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden p-1 border border-gray-200">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full"
+                initial={{ width: 0 }}
+                whileInView={{ width: `${hustle.fit_score}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
+            </div>
           </div>
-          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-primary"
-              initial={{ width: 0 }}
-              animate={{ width: `${hustle.fit_score}%` }}
-              transition={{ duration: 1, delay: 0.5 }}
-            />
+
+          <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+              <Zap className="w-12 h-12 text-primary" />
+            </div>
+            <p className="text-sm font-bold text-primary/60 uppercase tracking-widest mb-1">Why it works</p>
+            <p className="text-gray-700 font-medium italic leading-relaxed">"{hustle.why_perfect}"</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase font-bold">Potential</p>
-            <p className="text-lg font-bold text-gray-900">{hustle.monthly_income}</p>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-            <p className="text-xs text-gray-400 uppercase font-bold">Time to Pay</p>
-            <p className="text-lg font-bold text-gray-900">{hustle.time_to_first_income}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white/50 p-4 rounded-2xl mb-6 italic text-gray-700 border border-gray-100">
-        "{hustle.why_perfect}"
-      </div>
-
-      <div className="space-y-4 mb-8">
-        <h4 className="font-bold text-gray-900 flex items-center">
-          <CheckCircle2 className="w-5 h-5 mr-2 text-primary" />
-          First 3 Steps
-        </h4>
-        <div className="space-y-3">
-          {hustle.first_3_steps.map((step, i) => (
-            <div key={i} className="flex items-start">
-              <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
-                {i + 1}
-              </span>
-              <p className="text-gray-600">{step}</p>
+          <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col justify-between">
+            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl w-fit mb-4">
+              <DollarSign className="w-5 h-5" />
             </div>
-          ))}
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Potential</p>
+              <p className="text-xl font-black text-gray-900">{hustle.monthly_income}</p>
+            </div>
+          </div>
+          <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col justify-between">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-xl w-fit mb-4">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Time to Pay</p>
+              <p className="text-xl font-black text-gray-900">{hustle.time_to_first_income}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4 mb-8">
-        <h4 className="font-bold text-gray-900">Tools You'll Need</h4>
-        <div className="flex flex-wrap gap-2">
-          {hustle.tools.map((tool) => (
-            <a
-              key={tool.name}
-              href={tool.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-primary hover:text-primary transition-colors shadow-sm"
-            >
-              {tool.name} — {tool.purpose}
-              <ExternalLink className="ml-2 w-3 h-3" />
-            </a>
-          ))}
+      <div className="space-y-8">
+        <div className="space-y-4">
+          <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center">
+            <div className="w-1.5 h-6 bg-primary rounded-full mr-3" />
+            Action Plan: First 3 Steps
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {hustle.first_3_steps.map((step, i) => (
+              <div key={i} className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm relative group hover:border-primary/30 transition-colors">
+                <span className="absolute -top-2 -left-2 w-6 h-6 bg-primary text-white rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg">
+                  0{i + 1}
+                </span>
+                <p className="text-sm text-gray-600 font-medium pt-2">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center">
+            <div className="w-1.5 h-6 bg-indigo-400 rounded-full mr-3" />
+            Recommended Stack
+          </h4>
+          <div className="flex flex-wrap gap-3">
+            {hustle.tools.map((tool) => (
+              <a
+                key={tool.name}
+                href={tool.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 hover:bg-white hover:border-primary hover:text-primary transition-all shadow-sm"
+              >
+                <span className="mr-2">{tool.name}</span>
+                <span className="text-[10px] text-gray-400 group-hover:text-primary/60 transition-colors">— {tool.purpose}</span>
+                <ExternalLink className="ml-3 w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="mt-10">
         <a
           href={hustle.tools[0]?.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors shadow-lg"
+          className="w-full inline-flex items-center justify-center px-8 py-5 bg-primary text-white font-black text-lg rounded-2xl hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-primary/30"
         >
-          Start this hustle →
+          Launch This Hustle
+          <ArrowRight className="ml-3 w-6 h-6" />
         </a>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onToggleSave(hustle)}
-            className={`flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 border-2 rounded-xl font-bold transition-all ${
-              isSaved
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-primary hover:text-primary'
-            }`}
-          >
-            <CheckCircle2 className={`w-5 h-5 mr-2 ${isSaved ? 'fill-primary' : ''}`} />
-            {isSaved ? "Saved" : "Save"}
-          </button>
-          <button
-            onClick={() => onShare(hustle.name, hustle.monthly_income)}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
-          >
-            <Share2 className="w-5 h-5 mr-2" />
-            Share
-          </button>
-        </div>
       </div>
     </motion.div>
   );
@@ -285,6 +320,16 @@ export default function App() {
   const startQuiz = () => {
     setView('quiz');
     setCurrentStep(0);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+      setShowCustomInput(false);
+      setCustomChoice('');
+    } else {
+      resetQuiz();
+    }
   };
 
   const handleAnswer = (option: string) => {
@@ -461,35 +506,62 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6"
+              className="text-center space-y-8"
             >
-              <div className="inline-block p-3 bg-primary/10 rounded-2xl mb-4">
-                <Zap className="w-12 h-12 text-primary" />
+              <div className="flex justify-center">
+                <div className="p-1 bg-primary/5 rounded-2xl shadow-inner">
+                  <Logo className="w-20 h-20" />
+                </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
-                Find Your Perfect Side Hustle in 60 Seconds — <span className="text-primary">Free</span>
-              </h1>
-              <p className="text-xl text-gray-600 max-w-lg mx-auto">
-                Answer 6 simple questions. Get a personalized AI plan to start making extra income today.
-              </p>
+              
+              <div className="space-y-4">
+                <h1 className="text-5xl md:text-7xl font-black tracking-tight text-gray-900 leading-tight">
+                  Escape the 9-5 with <span className="text-primary">HustleAI</span>
+                </h1>
+                <p className="text-xl text-gray-600 max-w-lg mx-auto font-medium">
+                  Stop guessing. Our AI analyzes your unique skills to build a personalized roadmap to financial freedom.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-8">
+                {[
+                  { label: "AI Analysis", desc: "Deep skill mapping", icon: <Zap className="w-5 h-5" /> },
+                  { label: "Fast Results", desc: "60-second quiz", icon: <Clock className="w-5 h-5" /> },
+                  { label: "Proven Paths", desc: "Real income data", icon: <Trophy className="w-5 h-5" /> }
+                ].map((feature, i) => (
+                  <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left">
+                    <div className="text-primary mb-2">{feature.icon}</div>
+                    <p className="font-bold text-gray-900 text-sm">{feature.label}</p>
+                    <p className="text-xs text-gray-500">{feature.desc}</p>
+                  </div>
+                ))}
+              </div>
+
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button 
                   onClick={startQuiz}
-                  className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-primary rounded-xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary w-full sm:w-auto"
+                  className="group relative inline-flex items-center justify-center px-10 py-5 font-black text-lg text-white transition-all duration-200 bg-primary rounded-2xl hover:bg-primary/90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary/20 w-full sm:w-auto shadow-xl shadow-primary/20"
                 >
-                  Start My Assessment
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  Find My Hustle
+                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 {savedHustles.length > 0 && (
                   <button 
                     onClick={() => setView('saved')}
-                    className="inline-flex items-center justify-center px-8 py-4 font-bold text-gray-700 transition-all duration-200 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:text-primary focus:outline-none w-full sm:w-auto"
+                    className="inline-flex items-center justify-center px-10 py-5 font-bold text-gray-700 transition-all duration-200 bg-white border-2 border-gray-200 rounded-2xl hover:border-primary hover:text-primary focus:outline-none w-full sm:w-auto"
                   >
                     <Trophy className="mr-2 w-5 h-5 text-amber-500" />
-                    My Saved Hustles ({savedHustles.length})
+                    Saved ({savedHustles.length})
                   </button>
                 )}
+              </div>
+
+              <div className="pt-4">
+                <p className="text-sm font-bold text-gray-400 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+                  Join 10,000+ people finding their path
+                </p>
               </div>
             </motion.div>
           )}
@@ -504,13 +576,22 @@ export default function App() {
             >
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <button
-                    onClick={resetQuiz}
-                    className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center"
-                  >
-                    <ArrowRight className="w-3 h-3 mr-1 rotate-180" />
-                    Exit Quiz
-                  </button>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={resetQuiz}
+                      className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center"
+                    >
+                      <RefreshCcw className="w-3 h-3 mr-1" />
+                      Reset
+                    </button>
+                    <button
+                      onClick={prevStep}
+                      className="text-xs font-bold text-gray-400 hover:text-primary transition-colors flex items-center"
+                    >
+                      <ArrowRight className="w-3 h-3 mr-1 rotate-180" />
+                      Back
+                    </button>
+                  </div>
                   <span className="text-sm font-semibold text-primary uppercase tracking-wider">Question {currentStep + 1} of 6</span>
                   <span className="text-sm text-gray-400">{Math.round(((currentStep + 1) / 6) * 100)}% Complete</span>
                 </div>
@@ -620,16 +701,12 @@ export default function App() {
               <div className="relative inline-block">
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 >
-                  <Loader2 className="w-20 h-20 text-primary opacity-20" />
+                  <div className="w-24 h-24 border-4 border-primary/10 border-t-primary rounded-full" />
                 </motion.div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_rgba(91,33,182,0.5)]"
-                  />
+                  <Logo className="w-12 h-12" />
                 </div>
               </div>
 
@@ -691,14 +768,23 @@ export default function App() {
               key="results"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-8"
+              className="space-y-12"
             >
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold text-gray-900">Your Personalized Hustle Plan</h2>
-                <p className="text-gray-600">We found 3 opportunities that match your profile perfectly.</p>
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center px-4 py-2 bg-primary/5 text-primary rounded-full text-xs font-black uppercase tracking-widest border border-primary/10">
+                  <Logo className="w-4 h-4 mr-2" />
+                  Analysis Complete
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight">
+                  Your Personalized <br className="hidden md:block" />
+                  <span className="text-primary underline decoration-primary/20 underline-offset-8">Hustle Roadmap</span>
+                </h2>
+                <p className="text-xl text-gray-500 max-w-lg mx-auto font-medium">
+                  We found 3 opportunities that match your profile perfectly.
+                </p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-10">
                 {results.map((hustle: Hustle, index: number) => (
                   <HustleCard
                     key={hustle.name}
@@ -812,7 +898,7 @@ export default function App() {
         <div className="max-w-lg mx-auto px-4">
           <h5 className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-2">Monetization Disclosure</h5>
           <p className="text-xs text-gray-500 leading-relaxed">
-            AI Side Hustle Finder is 100% free to use. To keep this service free, we may receive a commission when you click on some of the tool links and make a purchase. This does not affect our recommendations, which are generated purely by AI based on your unique profile.
+            HustleAI is 100% free to use. To keep this service free, we may receive a commission when you click on some of the tool links and make a purchase. This does not affect our recommendations, which are generated purely by AI based on your unique profile.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2">
             {["Fiverr", "Upwork", "Shopify", "Teachable", "Gumroad", "Canva", "Notion", "Coursera", "Skillshare", "ConvertKit", "Squarespace", "Etsy"].map(partner => (
@@ -820,7 +906,7 @@ export default function App() {
             ))}
           </div>
         </div>
-        <p className="text-gray-400 text-xs pt-4">© 2026 AI Side Hustle Finder • Free & AI-Powered</p>
+        <p className="text-gray-400 text-xs pt-4">© 2026 HustleAI • Free & AI-Powered</p>
       </footer>
     </div>
   );
