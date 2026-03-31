@@ -404,44 +404,10 @@ export default function App() {
     setError(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-      const prompt = `
-        Analyze these 6 answers from a side hustle quiz and return a valid JSON object only, no markdown, no explanation.
-        
-        User Profile:
-        - Skills: ${finalAnswers.skills}
-        - Hours available: ${finalAnswers.hours}
-        - Budget: ${finalAnswers.budget}
-        - Goal: ${finalAnswers.goal}
-        - Work Style: ${finalAnswers.workStyle}
-        - Speed needed: ${finalAnswers.speed}
-
-        Return exactly 3 hustle objects with this exact structure:
-        {
-          "hustles": [
-            {
-              "name": "Hustle Name",
-              "tagline": "Short catchy tagline",
-              "fit_score": 92,
-              "monthly_income": "€X–Y/mo",
-              "time_to_first_income": "Timeframe",
-              "difficulty": "Beginner/Intermediate/Advanced",
-              "why_perfect": "Two sentences personalized to the user's exact answers explaining why this fits them specifically.",
-              "first_3_steps": ["Step 1", "Step 2", "Step 3"],
-              "tools": [
-                { "name": "Tool Name", "purpose": "Tool Purpose", "url": "https://toolurl.com" }
-              ]
-            }
-          ]
-        }
-
-        Choose tools from: Fiverr, Upwork, Shopify, Teachable, Gumroad, Canva, Notion, Coursera, Skillshare, ConvertKit, Squarespace, Etsy.
-        Pick the 2–3 most relevant tools per hustle.
-      `;
-
-      const response: GenerateContentResponse = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
+      const response = await fetch("/api/generate-hustles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalAnswers),
       });
 
       const text = response.text || "";
